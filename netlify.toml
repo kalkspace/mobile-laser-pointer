@@ -1,0 +1,4 @@
+[dev]
+command = "node server.js"
+targetPort = 9876
+autoLaunch = false
