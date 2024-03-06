@@ -1,60 +1,63 @@
 <html>
+  <head>
+    <title>Mobile Laser Pointer - Controller</title>
+  </head>
 
-<head>
-  <title>Mobile Laser Pointer - Controller</title>
-</head>
+  <body>
+    <script type="module">
+      import { pageReady, start } from "./webrtc.js";
+      await pageReady();
+      const dataChannel = await start(true);
 
-<body>
-  <script type="module">
-    function toEuler(q) {
-      let sinr_cosp = 2 * (q[3] * q[0] + q[1] * q[2]);
-      let cosr_cosp = 1 - 2 * (q[0] * q[0] + q[1] * q[1]);
-      let roll = Math.atan2(sinr_cosp, cosr_cosp);
+      function toEuler(q) {
+        let sinr_cosp = 2 * (q[3] * q[0] + q[1] * q[2]);
+        let cosr_cosp = 1 - 2 * (q[0] * q[0] + q[1] * q[1]);
+        let roll = Math.atan2(sinr_cosp, cosr_cosp);
 
-      let siny_cosp = 2 * (q[3] * q[2] + q[0] * q[1]);
-      let cosy_cosp = 1 - 2 * (q[1] * q[1] + q[2] * q[2]);
-      let yaw = Math.atan2(siny_cosp, cosy_cosp);
+        let siny_cosp = 2 * (q[3] * q[2] + q[0] * q[1]);
+        let cosy_cosp = 1 - 2 * (q[1] * q[1] + q[2] * q[2]);
+        let yaw = Math.atan2(siny_cosp, cosy_cosp);
 
-      return [yaw, roll];
-    }
-
-    const options = { frequency: 10, referenceFrame: "device" };
-    const sensor = new RelativeOrientationSensor(options);
-
-    const scheme = location.protocol === "https:" ? "wss" : "ws"
-    const ws = new WebSocket(`${scheme}://${location.host}/`);
-    await new Promise((res) => {
-      ws.addEventListener("open", (event) => {
-        res()
-      });
-    })
-
-    const factor = 50;
-    let firstRead;
-    sensor.addEventListener("reading", (e) => {
-      const [yaw, roll] = toEuler(e.target.quaternion);
-      if (!firstRead) {
-        firstRead = { yaw, roll };
+        return [yaw, roll];
       }
-      const deltaYaw = firstRead.yaw - yaw;
-      const deltaRoll = firstRead.roll - roll;
 
-      ws.send(JSON.stringify({ deltaYaw, deltaRoll }))
+      const options = { frequency: 10, referenceFrame: "device" };
+      const sensor = new AbsoluteOrientationSensor(options);
 
-      console.log({
-        yaw: yaw.toFixed(4),
-        deltaYaw: deltaYaw.toFixed(4),
-        roll: roll.toFixed(4),
-        deltaRoll: deltaRoll.toFixed(4),
+      // const scheme = location.protocol === "https:" ? "wss" : "ws";
+      // const ws = new WebSocket(`${scheme}://${location.host}/`);
+      // await new Promise((res) => {
+      //   ws.addEventListener("open", (event) => {
+      //     res();
+      //   });
+      // });
+
+      const factor = 50;
+      let firstRead;
+      sensor.addEventListener("reading", (e) => {
+        const [yaw, roll] = toEuler(e.target.quaternion);
+        if (!firstRead) {
+          firstRead = { yaw, roll };
+        }
+        const deltaYaw = firstRead.yaw - yaw;
+        const deltaRoll = firstRead.roll - roll;
+        console.log("reading", [deltaYaw, deltaRoll]);
+
+        dataChannel.send(JSON.stringify({ deltaYaw, deltaRoll }));
+
+        console.log({
+          yaw: yaw.toFixed(4),
+          deltaYaw: deltaYaw.toFixed(4),
+          roll: roll.toFixed(4),
+          deltaRoll: deltaRoll.toFixed(4),
+        });
       });
-    });
-    sensor.addEventListener("error", (error) => {
-      if (event.error.name === "NotReadableError") {
-        console.log("Sensor is not available.");
-      }
-    });
-    sensor.start();
-  </script>
-</body>
-
+      sensor.addEventListener("error", (error) => {
+        if (event.error.name === "NotReadableError") {
+          console.log("Sensor is not available.");
+        }
+      });
+      sensor.start();
+    </script>
+  </body>
 </html>

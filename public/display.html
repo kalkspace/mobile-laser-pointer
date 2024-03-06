@@ -1,30 +1,31 @@
 <html>
+  <head>
+    <title>Mobile Laser Pointer - Display</title>
+  </head>
 
-<head>
-  <title>Mobile Laser Pointer - Display</title>
-</head>
+  <body style="margin: 0">
+    <svg style="width: 100vw; height: 100vh" viewBox="0 0 100 100">
+      <circle id="circle" r="10" fill="red" cx="50" cy="50" />
+    </svg>
 
-<body style="margin: 0">
-  <svg style="width: 100vw; height: 100vh" viewBox="0 0 100 100">
-    <circle id="circle" r="10" fill="red" cx="50" cy="50" />
-  </svg>
+    <script type="module">
+      import { pageReady } from "./webrtc.js";
+      await pageReady();
 
-  <script type="module">
-    const point = document.getElementById("circle");
-    const factor = 50;
+      const point = document.getElementById("circle");
+      const factor = 50;
 
-    const scheme = location.protocol === "https:" ? "wss" : "ws"
-    const ws = new WebSocket(`${scheme}://${location.host}/`);
-    ws.addEventListener("open", () => {
-      console.log("socket open")
-      ws.addEventListener("message", (ev) => {
-        const { deltaYaw, deltaRoll } = JSON.parse(ev.data);
+      // const scheme = location.protocol === "https:" ? "wss" : "ws";
+      // const ws = new WebSocket(`${scheme}://${location.host}/`);
+      // ws.addEventListener("open", () => {
+      //   console.log("socket open");
+      //   ws.addEventListener("message", (ev) => {
+      //     const { deltaYaw, deltaRoll } = JSON.parse(ev.data);
 
-        point.setAttributeNS(null, "cx", 50 + factor * deltaYaw);
-        point.setAttributeNS(null, "cy", 50 + factor * deltaRoll);
-      })
-    })
-  </script>
-</body>
-
+      //     point.setAttributeNS(null, "cx", 50 + factor * deltaYaw);
+      //     point.setAttributeNS(null, "cy", 50 + factor * deltaRoll);
+      //   });
+      // });
+    </script>
+  </body>
 </html>
