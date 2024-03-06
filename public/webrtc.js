@@ -83,6 +83,14 @@ export const start = async (isCaller) => {
       console.log("data channel event", event);
       event.channel.addEventListener("message", (event) => {
         console.log("data channel message:", event.data);
+
+        const { deltaYaw, deltaRoll } = JSON.parse(event.data);
+
+        const point = document.getElementById("circle");
+        const factor = 50;
+
+        point.setAttributeNS(null, "cx", 50 + factor * deltaYaw);
+        point.setAttributeNS(null, "cy", 50 + factor * deltaRoll);
       });
     });
   }
