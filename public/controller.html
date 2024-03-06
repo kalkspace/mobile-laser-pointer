@@ -21,18 +21,9 @@
         return [yaw, roll];
       }
 
-      const options = { frequency: 10, referenceFrame: "device" };
+      const options = { frequency: 30, referenceFrame: "device" };
       const sensor = new AbsoluteOrientationSensor(options);
 
-      // const scheme = location.protocol === "https:" ? "wss" : "ws";
-      // const ws = new WebSocket(`${scheme}://${location.host}/`);
-      // await new Promise((res) => {
-      //   ws.addEventListener("open", (event) => {
-      //     res();
-      //   });
-      // });
-
-      const factor = 50;
       let firstRead;
       sensor.addEventListener("reading", (e) => {
         const [yaw, roll] = toEuler(e.target.quaternion);

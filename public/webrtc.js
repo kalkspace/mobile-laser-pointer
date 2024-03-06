@@ -19,17 +19,14 @@ export const pageReady = () => {
 
   return new Promise((resolve) => {
     ws.addEventListener("open", () => {
-      resolve("open");
+      resolve();
       console.log("socket open");
-      //   ws.send(JSON.stringify({ uuid }));
       ws.addEventListener("message", async (message) => {
-        // console.log("got message", message.data);
         if (!peerConnection) {
           start(false);
         }
 
         const signal = JSON.parse(message.data);
-        // console.log("signal", signal);
 
         if (signal.uuid === uuid) {
           return;
@@ -42,11 +39,9 @@ export const pageReady = () => {
           if (signal.sdp.type === "offer") {
             const description = await peerConnection.createAnswer();
             createdDescription(description, ws);
-            // resolve("sdp");
           }
         } else if (signal.ice) {
           await peerConnection.addIceCandidate(new RTCIceCandidate(signal.ice));
-          //   resolve("ice");
         }
       });
     });
@@ -54,7 +49,6 @@ export const pageReady = () => {
 };
 
 export const start = async (isCaller) => {
-  //   console.log("start", isCaller);
   peerConnection = new RTCPeerConnection(peerConnectionConfig);
 
   peerConnection.addEventListener("icecandidate", (event) => {
@@ -70,19 +64,16 @@ export const start = async (isCaller) => {
     return new Promise(async (resolve) => {
       dataChannel.addEventListener("open", () => {
         console.log("data channel open");
-        dataChannel.send("Hello World!");
         resolve(dataChannel);
       });
 
       const description = await peerConnection.createOffer();
-      console.log("caller with", description);
       createdDescription(description, ws);
     });
   } else {
     peerConnection.addEventListener("datachannel", (event) => {
-      console.log("data channel event", event);
       event.channel.addEventListener("message", (event) => {
-        console.log("data channel message:", event.data);
+        console.log("data channel message", event.data);
 
         const { deltaYaw, deltaRoll } = JSON.parse(event.data);
 
@@ -97,7 +88,6 @@ export const start = async (isCaller) => {
 };
 
 const createdDescription = async (description, ws) => {
-  console.log("created description", description);
   await peerConnection.setLocalDescription(description);
   ws.send(
     JSON.stringify({
